@@ -1,9 +1,10 @@
-package Vortex
+package vortex
 
 const (
-	http      = "http"
+	http1     = "http/1.1"
+	http2     = "http/2"
 	webSocket = "webSocket"
 )
 
 // 支持的协议
-var protocol = []string{http, webSocket}
+var Protocol = []string{http1, http2, webSocket}
