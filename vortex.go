@@ -115,6 +115,7 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 	switch protocl {
 	case http1:
 		// 使用echo框架处理 HTTP/1.1 请求
+		v.handleHttpWithEcho(d)
 	case webSocket:
 		// 使用 WebSocket 处理逻辑
 	case http2:
@@ -152,6 +153,6 @@ func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
 		resp.StatusCode,
 		http.StatusText(resp.StatusCode),
 		resp.Header,
-		string(rec.Body.Bytes()),
+		rec.Body.String(),
 	)))
 }
