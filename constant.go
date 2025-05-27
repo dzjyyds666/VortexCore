@@ -8,3 +8,5 @@ const (
 
 // 支持的协议
 var Protocol = []string{http1, http2, webSocket}
+
+type Map map[string]interface{}

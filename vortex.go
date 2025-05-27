@@ -7,8 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
-
-	"github.com/labstack/echo/v4"
 )
 
 var Transport = struct {
@@ -51,14 +49,24 @@ func WithHttp2() Option {
 	}
 }
 
+func WithHttpRouter(routers []*HttpRouter) Option {
+	return func(v *Vortex) {
+		if v.httpRouter == nil {
+			v.httpRouter = make([]*HttpRouter, 0)
+		}
+		v.httpRouter = append(v.httpRouter, routers...)
+	}
+}
+
 // 框架的整体结构
 type Vortex struct {
-	ctx       context.Context    // 上下文
-	cancel    context.CancelFunc // 退出信号
-	port      string             // 服务的端口
-	transport string             // 传输协议
-	protocol  []string           // 支持的协议列表
-	e         *echo.Echo         // Echo 框架实例
+	ctx        context.Context    // 上下文
+	cancel     context.CancelFunc // 退出信号
+	port       string             // 服务的端口
+	transport  string             // 传输协议
+	protocol   []string           // 支持的协议列表
+	httpServ   *httpServer        // http服务，封装了echo框架
+	httpRouter []*HttpRouter      // http服务路由表
 }
 
 // 启动服务
@@ -70,11 +78,22 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 		o(vortex)
 	}
 
-	vortex.e = echo.New()
-
 	if len(vortex.port) <= 0 {
 		panic("port must be set")
 	}
+
+	for _, p := range vortex.protocol {
+		switch p {
+		case http1:
+			// 添加默认的Http路由
+			vortex.httpRouter = append(vortex.httpRouter,
+				AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", func(ctx VortexContext) error {
+					return ctx.GetEcho().String(http.StatusOK, "ok")
+				}))
+			NewHttpServer(ctx, vortex.httpRouter)
+		}
+	}
+
 	return vortex
 }
 
@@ -92,7 +111,6 @@ func (v *Vortex) BootStorp() {
 			fmt.Printf("accept error: %v\n", err)
 			continue
 		}
-		defer conn.Close()
 		go v.ParsingRequest(conn) // 异步处理请求
 	}
 }
@@ -102,13 +120,15 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 	// 例如读取前几个字节来判断是 HTTP 还是 WebSocket 等
 	// 然后根据协议类型进行相应的处理
 	ctx, cancel := context.WithCancel(v.ctx)
-	defer cancel()
+	defer func() {
+		cancel()
+		conn.Close()
+	}()
 	d := NewDispatcher(ctx, conn)
 	protocl, err := d.Parse()
 	// 关闭连接
 	if nil != err || protocl == "unknown" {
 		fmt.Printf("parse error: %v\n", err)
-		conn.Close()
 		return
 	}
 
@@ -127,6 +147,7 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 
 // echo 框架处理Http请求
 func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
+
 	req, err := http.ReadRequest(bufio.NewReader(dispatcher.GetReadBuffer()))
 	if nil != err {
 		fmt.Printf("read request error: %v\n", err)
@@ -136,9 +157,8 @@ func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
 
 	rec := httptest.NewRecorder()
 
-	// 使用 Echo 框架处理 HTTP 请求
-	echoCtx := v.e.NewContext(req, rec)
-	v.e.Router().Find(echoCtx.Request().Method, echoCtx.Request().URL.Path, echoCtx)
+	echoCtx := v.httpServ.e.NewContext(req, rec)
+	v.httpServ.e.Router().Find(echoCtx.Request().Method, echoCtx.Request().URL.Path, echoCtx)
 	if echoCtx.Handler() == nil {
 		echoCtx.String(http.StatusNotFound, "404 Not Found")
 	} else {
@@ -148,11 +168,11 @@ func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
 	}
 
 	resp := rec.Result()
-	_, _ = dispatcher.Write([]byte(fmt.Sprintf(
+	_ = dispatcher.Response(fmt.Appendf(nil,
 		"HTTP/1.1 %d %s\r\n%s\r\n%s",
 		resp.StatusCode,
 		http.StatusText(resp.StatusCode),
 		resp.Header,
 		rec.Body.String(),
-	)))
+	))
 }

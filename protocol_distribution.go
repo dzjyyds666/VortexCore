@@ -51,6 +51,14 @@ func (d *Dispatcher) Parse() (string, error) {
 	}
 }
 
+func (d *Dispatcher) Response(resp []byte) error {
+	_, err := d.conn.Write(resp) // 发送响应
+	if nil != err {
+		return err
+	}
+	return nil
+}
+
 func (d *Dispatcher) Read(p []byte) (int, error) {
 	if d.r == nil {
 		// 如果未调用 Parse()，直接读原始连接
