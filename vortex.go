@@ -7,6 +7,8 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/dzjyyds666/opensource/logx"
 )
 
 var Transport = struct {
@@ -15,47 +17,6 @@ var Transport = struct {
 }{
 	TCP: "tcp",
 	UDP: "udp",
-}
-
-type Option func(*Vortex)
-
-func WithListenPort(port string) Option {
-	return func(v *Vortex) {
-		v.port = port
-	}
-}
-
-func WithTransport(transport string) Option {
-	return func(v *Vortex) {
-		v.transport = transport
-	}
-}
-
-func WithHttp1() Option {
-	return func(v *Vortex) {
-		v.protocol = append(v.protocol, http1)
-	}
-}
-
-func WithWebSocket() Option {
-	return func(v *Vortex) {
-		v.protocol = append(v.protocol, webSocket)
-	}
-}
-
-func WithHttp2() Option {
-	return func(v *Vortex) {
-		v.protocol = append(v.protocol, http2)
-	}
-}
-
-func WithHttpRouter(routers []*HttpRouter) Option {
-	return func(v *Vortex) {
-		if v.httpRouter == nil {
-			v.httpRouter = make([]*HttpRouter, 0)
-		}
-		v.httpRouter = append(v.httpRouter, routers...)
-	}
 }
 
 // 框架的整体结构
@@ -72,6 +33,7 @@ type Vortex struct {
 // 启动服务
 func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 	vortex := &Vortex{
+		ctx:       ctx,
 		transport: Transport.TCP, // 默认使用 TCP
 	}
 	for _, o := range opts {
@@ -98,7 +60,7 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 }
 
 // 开启端口监听，先判断当前请求的协议，然后选择对应的协议进行处理
-func (v *Vortex) BootStorp() {
+func (v *Vortex) Start() {
 	ln, err := net.Listen(v.transport, fmt.Sprintf(":%s", v.port))
 	if nil != err {
 		panic(err)
@@ -142,7 +104,6 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 		// 使用 HTTP/2 处理逻辑
 	default:
 	}
-	fmt.Printf("protocol: %s\n", protocl)
 }
 
 // echo 框架处理Http请求
@@ -175,4 +136,58 @@ func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
 		resp.Header,
 		rec.Body.String(),
 	))
+}
+
+type Option func(*Vortex)
+
+// 设置自定义日志
+func WithCustomLogger(logPath string, logLevel logx.LogLevel, maxSizeMB int64, consoleOut bool) Option {
+	return func(v *Vortex) {
+		if err := initVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
+			panic(fmt.Sprintf("init vortex log error: %v", err))
+		}
+	}
+}
+
+// 设置默认日志
+func WithDefaultLogger() Option {
+	return func(v *Vortex) {
+		if err := initVortexLog("logs/stdout.log", logx.DEBUG, 10, true); nil != err {
+			panic(fmt.Sprintf("init vortex log error: %v", err))
+		}
+	}
+}
+
+// 设置监听端口
+func WithListenPort(port string) Option {
+	return func(v *Vortex) {
+		v.port = port
+	}
+}
+
+// 设置传输协议
+func WithTransport(transport string) Option {
+	return func(v *Vortex) {
+		v.transport = transport
+	}
+}
+
+// 设置支持的协议
+func WithProtocol(protocols ...string) Option {
+	return func(v *Vortex) {
+		if v.protocol == nil {
+			v.protocol = make([]string, 0)
+		}
+		v.protocol = append(v.protocol, protocols...)
+	}
+}
+
+// 设置自定义Http路由
+func WithHttpRouter(routers []*HttpRouter) Option {
+	return func(v *Vortex) {
+		if v.httpRouter == nil {
+			v.httpRouter = make([]*HttpRouter, 0)
+		}
+		v.httpRouter = append(v.httpRouter, routers...)
+	}
 }

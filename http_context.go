@@ -51,6 +51,7 @@ type HttpRouter struct {
 	middleWares []VortexHttpMiddleware    // 中间件
 }
 
+// 添加 Http 路由
 func AppendHttpRouter(method []string, path string, handle func(VortexContext) error, middlwWares ...VortexHttpMiddleware) *HttpRouter {
 	return &HttpRouter{
 		handle:      handle,
@@ -60,6 +61,8 @@ func AppendHttpRouter(method []string, path string, handle func(VortexContext) e
 	}
 }
 
+// 将 VortexHttpMiddleware 转换为 Echo 中间件列表
+// 这将允许 Echo 框架使用这些中间件
 func (hr *HttpRouter) ToMiddleWareList() []echo.MiddlewareFunc {
 	middlewares := make([]echo.MiddlewareFunc, 0, len(hr.middleWares))
 	for _, mw := range hr.middleWares {
