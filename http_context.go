@@ -31,7 +31,8 @@ func NewHttpServer(ctx context.Context, routers []*HttpRouter) *httpServer {
 	for _, router := range routers {
 		for _, method := range router.Method {
 			vortex.Add(method, router.path, func(ctx echo.Context) error {
-				return nil
+				// 包装成自身封装的上下文
+				return router.handle(&httpContext{ctx})
 			}, router.ToMiddleWareList()...)
 		}
 	}

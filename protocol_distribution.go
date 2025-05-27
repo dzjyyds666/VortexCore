@@ -13,38 +13,42 @@ import (
 // 根据请求的前几个字节做协议识别，并并发连接
 // 分发器
 type Dispatcher struct {
-	ctx  context.Context
-	conn net.Conn
-	peek bytes.Buffer
-	r    io.Reader
+	ctx   context.Context
+	conn  net.Conn
+	peek  []byte
+	r     io.Reader
+	cache *bytes.Buffer
 }
 
 func NewDispatcher(ctx context.Context, conn net.Conn) *Dispatcher {
 	return &Dispatcher{
-		ctx:  ctx,
-		conn: conn,
+		ctx:   ctx,
+		conn:  conn,
+		cache: new(bytes.Buffer),
 	}
 }
 
 func (d *Dispatcher) Parse() (string, error) {
+
+	tee := io.TeeReader(d.conn, d.cache)
+
 	peekLen := 24 // Enough for HTTP/2 preface
-	buf := make([]byte, peekLen)
-	n, err := d.conn.Read(buf)
+	d.peek = make([]byte, peekLen)
+	_, err := io.ReadFull(tee, d.peek)
 	if err != nil {
 		return "", err
 	}
 
-	d.peek.Write(buf[:n]) // 保存起来
+	d.r = io.MultiReader(d.cache, d.r)
 
-	if isHttp1(d.peek.Bytes()) {
+	if isHttp1(d.peek) {
 		// 重新构造一个 reader 来解析完整的 HTTP 请求头
-		fullReader := io.MultiReader(bytes.NewReader(d.peek.Bytes()), d.conn)
-		req, parseErr := http.ReadRequest(bufio.NewReader(fullReader))
+		req, parseErr := http.ReadRequest(bufio.NewReader(io.MultiReader(bytes.NewReader(d.peek), tee)))
 		if parseErr == nil && req.Header.Get("Upgrade") == "websocket" {
 			return webSocket, nil
 		}
 		return http1, nil
-	} else if isHttp2Preface(d.peek.Bytes()) {
+	} else if isHttp2Preface(d.peek) {
 		return http2, nil
 	} else {
 		return "unknown", nil

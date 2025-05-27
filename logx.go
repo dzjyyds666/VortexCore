@@ -19,7 +19,7 @@ func initVortexLog(logPath string, logLevel logx.LogLevel, maxSizeMB int64, cons
 }
 
 // 打印Info日志
-func Info(msg string, args ...interface{}) {
+func Infof(msg string, args ...interface{}) {
 	if vlog == nil {
 		panic("vortex log is not initialized")
 	}
@@ -27,7 +27,7 @@ func Info(msg string, args ...interface{}) {
 }
 
 // 打印Debug日志
-func Debug(msg string, args ...interface{}) {
+func Debugf(msg string, args ...interface{}) {
 	if vlog == nil {
 		panic("vortex log is not initialized")
 	}
@@ -35,7 +35,7 @@ func Debug(msg string, args ...interface{}) {
 }
 
 // 打印Warn日志
-func Warn(msg string, args ...interface{}) {
+func Warnf(msg string, args ...interface{}) {
 	if vlog == nil {
 		panic("vortex log is not initialized")
 	}
@@ -43,7 +43,7 @@ func Warn(msg string, args ...interface{}) {
 }
 
 // 打印Error日志
-func Error(msg string, args ...interface{}) {
+func Errorf(msg string, args ...interface{}) {
 	if vlog == nil {
 		panic("vortex log is not initialized")
 	}

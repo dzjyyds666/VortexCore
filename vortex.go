@@ -2,6 +2,7 @@ package vortex
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"net"
@@ -50,9 +51,13 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 			// 添加默认的Http路由
 			vortex.httpRouter = append(vortex.httpRouter,
 				AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", func(ctx VortexContext) error {
-					return ctx.GetEcho().String(http.StatusOK, "ok")
+					return ctx.GetEcho().JSON(http.StatusOK, Map{
+						"code":    200,
+						"message": "alive",
+						"data":    nil,
+					})
 				}))
-			NewHttpServer(ctx, vortex.httpRouter)
+			vortex.httpServ = NewHttpServer(ctx, vortex.httpRouter)
 		}
 	}
 
@@ -84,8 +89,12 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 	ctx, cancel := context.WithCancel(v.ctx)
 	defer func() {
 		cancel()
-		conn.Close()
+		err := conn.Close()
+		if nil != err {
+			fmt.Printf("close error: %v\n", err)
+		}
 	}()
+
 	d := NewDispatcher(ctx, conn)
 	protocl, err := d.Parse()
 	// 关闭连接
@@ -97,7 +106,10 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 	switch protocl {
 	case http1:
 		// 使用echo框架处理 HTTP/1.1 请求
-		v.handleHttpWithEcho(d)
+		err := v.handleHttpWithEcho(d)
+		if nil != err {
+			d.Response([]byte("500 Internal Server Error"))
+		}
 	case webSocket:
 		// 使用 WebSocket 处理逻辑
 	case http2:
@@ -107,12 +119,12 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 }
 
 // echo 框架处理Http请求
-func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
+func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) error {
 
 	req, err := http.ReadRequest(bufio.NewReader(dispatcher.GetReadBuffer()))
 	if nil != err {
 		fmt.Printf("read request error: %v\n", err)
-		return
+		return err
 	}
 	defer req.Body.Close()
 
@@ -123,19 +135,20 @@ func (v *Vortex) handleHttpWithEcho(dispatcher *Dispatcher) {
 	if echoCtx.Handler() == nil {
 		echoCtx.String(http.StatusNotFound, "404 Not Found")
 	} else {
-		if err := echoCtx.Handler(); nil != err {
+		if err := echoCtx.Handler()(echoCtx); nil != err {
 			echoCtx.String(http.StatusInternalServerError, "500 Internal Server Error")
 		}
 	}
 
 	resp := rec.Result()
-	_ = dispatcher.Response(fmt.Appendf(nil,
-		"HTTP/1.1 %d %s\r\n%s\r\n%s",
-		resp.StatusCode,
-		http.StatusText(resp.StatusCode),
-		resp.Header,
-		rec.Body.String(),
-	))
+
+	var buf bytes.Buffer
+	err = resp.Write(&buf)
+	if nil != err {
+		return err
+	}
+	err = dispatcher.Response(buf.Bytes())
+	return err
 }
 
 type Option func(*Vortex)
