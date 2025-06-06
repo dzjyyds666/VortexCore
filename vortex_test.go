@@ -2,6 +2,7 @@ package vortex
 
 import (
 	"context"
+	vortexUtil "gothub.com/dzjyyds666/VortexCore/utils"
 	"testing"
 
 	"github.com/smartystreets/goconvey/convey"
@@ -10,12 +11,12 @@ import (
 func Test_Vortex(t *testing.T) {
 	convey.Convey("Test_Vortex", t, func() {
 		vortex := NewVortexCore(context.Background(),
-			WithListenPort("8080"),
+			WithListenPort("18080"),
 			WithDefaultLogger(),
 			WithTransport(Transport.TCP),
-			WithProtocol(http1, webSocket),
+			//WithHideBanner(true),
+			WithProtocol(vortexUtil.Http1, vortexUtil.WebSocket),
 		)
-
 		vortex.Start()
 	})
 }

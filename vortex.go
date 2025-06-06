@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"gothub.com/dzjyyds666/VortexCore/utils"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -29,6 +30,7 @@ type Vortex struct {
 	protocol   []string           // 支持的协议列表
 	httpServ   *httpServer        // http服务，封装了echo框架
 	httpRouter []*HttpRouter      // http服务路由表
+	hideBanner bool               // 是否隐藏启动旗帜，默认为false，显示banner
 }
 
 // 启动服务
@@ -47,16 +49,9 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 
 	for _, p := range vortex.protocol {
 		switch p {
-		case http1:
-			// 添加默认的Http路由
-			vortex.httpRouter = append(vortex.httpRouter,
-				AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", func(ctx VortexContext) error {
-					return ctx.GetEcho().JSON(http.StatusOK, Map{
-						"code":    200,
-						"message": "alive",
-						"data":    nil,
-					})
-				}))
+		case vortexUtil.Http1:
+			router := prepareDefaultHttpRouter()
+			vortex.httpRouter = append(vortex.httpRouter, router...)
 			vortex.httpServ = NewHttpServer(ctx, vortex.httpRouter)
 		}
 	}
@@ -71,6 +66,10 @@ func (v *Vortex) Start() {
 		panic(err)
 	}
 	defer ln.Close()
+
+	if !v.hideBanner {
+		vortexUtil.ShowBanner(v.port)
+	}
 
 	for {
 		conn, err := ln.Accept()
@@ -104,15 +103,15 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 	}
 
 	switch protocl {
-	case http1:
+	case vortexUtil.Http1:
 		// 使用echo框架处理 HTTP/1.1 请求
 		err := v.handleHttpWithEcho(d)
 		if nil != err {
 			d.Response([]byte("500 Internal Server Error"))
 		}
-	case webSocket:
+	case vortexUtil.WebSocket:
 		// 使用 WebSocket 处理逻辑
-	case http2:
+	case vortexUtil.Http2:
 		// 使用 HTTP/2 处理逻辑
 	default:
 	}
@@ -156,7 +155,7 @@ type Option func(*Vortex)
 // 设置自定义日志
 func WithCustomLogger(logPath string, logLevel logx.LogLevel, maxSizeMB int64, consoleOut bool) Option {
 	return func(v *Vortex) {
-		if err := initVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
+		if err := vortexUtil.InitVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
 			panic(fmt.Sprintf("init vortex log error: %v", err))
 		}
 	}
@@ -165,7 +164,7 @@ func WithCustomLogger(logPath string, logLevel logx.LogLevel, maxSizeMB int64, c
 // 设置默认日志
 func WithDefaultLogger() Option {
 	return func(v *Vortex) {
-		if err := initVortexLog("logs/stdout.log", logx.DEBUG, 10, true); nil != err {
+		if err := vortexUtil.InitVortexLog("logs/stdout.log", logx.DEBUG, 10, true); nil != err {
 			panic(fmt.Sprintf("init vortex log error: %v", err))
 		}
 	}
@@ -175,6 +174,13 @@ func WithDefaultLogger() Option {
 func WithListenPort(port string) Option {
 	return func(v *Vortex) {
 		v.port = port
+	}
+}
+
+// 是否显示启动旗帜
+func WithHideBanner(show bool) Option {
+	return func(v *Vortex) {
+		v.hideBanner = show
 	}
 }
 

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"gothub.com/dzjyyds666/VortexCore/utils"
 	"io"
 	"net"
 	"net/http"
@@ -45,11 +46,11 @@ func (d *Dispatcher) Parse() (string, error) {
 		// 重新构造一个 reader 来解析完整的 HTTP 请求头
 		req, parseErr := http.ReadRequest(bufio.NewReader(io.MultiReader(bytes.NewReader(d.peek), tee)))
 		if parseErr == nil && req.Header.Get("Upgrade") == "websocket" {
-			return webSocket, nil
+			return vortexUtil.WebSocket, nil
 		}
-		return http1, nil
+		return vortexUtil.Http1, nil
 	} else if isHttp2Preface(d.peek) {
-		return http2, nil
+		return vortexUtil.Http2, nil
 	} else {
 		return "unknown", nil
 	}
