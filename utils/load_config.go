@@ -4,68 +4,66 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/BurntSushi/toml"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"io"
 	"os"
 	"path"
 	"time"
+
+	"github.com/BurntSushi/toml"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 // 提供基础的配置文件加载功能，上层业务获取到map之后，自行进行解析即可
-func LoadConfigFromToml(configPath string) (map[string]interface{}, error) {
+func LoadConfigFromToml(configPath string, config any) error {
 	if path.Ext(configPath) != ".toml" {
-		return nil, errors.New("config file must be toml format")
+		return errors.New("config file must be toml format")
 	}
-
-	config := make(map[string]interface{})
 
 	open, err := os.Open(configPath)
 	if nil != err {
-		return nil, err
+		return err
 	}
 
 	configBytes, err := io.ReadAll(open)
 	if nil != err {
-		return nil, err
+		return err
 	}
 
-	_, err = toml.Decode(string(configBytes), &config)
+	_, err = toml.Decode(string(configBytes), config)
 	if nil != err {
-		return nil, err
+		return err
 	}
-	return config, nil
+	return nil
 }
 
 // 从json中解析
-func LoadConfigFromJson(configPath string) (map[string]interface{}, error) {
+func LoadConfigFromJson(configPath string, config any) error {
 	if path.Ext(configPath) != ".json" {
-		return nil, errors.New("config file must be json format")
+		return errors.New("config file must be json format")
 	}
-	config := make(map[string]interface{})
 	open, err := os.Open(configPath)
 	if nil != err {
-		return nil, err
+		return err
 	}
 	configBytes, err := io.ReadAll(open)
 	if nil != err {
-		return nil, err
+		return err
 	}
-	err = json.Unmarshal(configBytes, &config)
+	err = json.Unmarshal(configBytes, config)
 	if nil != err {
-		return nil, err
+		return err
 	}
-	return config, nil
+	return nil
 }
 
 // 从etcd中获取配置文件
-func LoadConfigFromEtcd(ctx context.Context, endpoint, configKey string) (map[string]interface{}, error) {
+func LoadConfigFromEtcd(ctx context.Context, endpoint, configKey string, config any) error {
 	client, err := clientv3.New(clientv3.Config{
 		Endpoints:   []string{endpoint},
 		DialTimeout: 5 * time.Second,
 	})
 	if nil != err {
-		return nil, err
+		return err
 	}
 	defer func() {
 		err = client.Close()
@@ -73,14 +71,18 @@ func LoadConfigFromEtcd(ctx context.Context, endpoint, configKey string) (map[st
 			return
 		}
 	}()
-	config, err := client.Get(ctx, configKey)
+	configInfo, err := client.Get(ctx, configKey)
 	if nil != err {
-		return nil, err
+		return err
 	}
 
-	if len(config.Kvs) > 0 {
-		configBytes := config.Kvs[0].Value
-		return LoadConfigFromJson(string(configBytes))
+	if len(configInfo.Kvs) > 0 {
+		configBytes := configInfo.Kvs[0].Value
+		err = json.Unmarshal(configBytes, config)
+		if nil != err {
+			return err
+		}
+		return nil
 	}
-	return nil, errors.New("no config found")
+	return errors.New("no config found")
 }

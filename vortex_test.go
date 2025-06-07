@@ -2,8 +2,9 @@ package vortex
 
 import (
 	"context"
-	vortexUtil "gothub.com/dzjyyds666/VortexCore/utils"
 	"testing"
+
+	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 
 	"github.com/smartystreets/goconvey/convey"
 )
