@@ -2,11 +2,12 @@ package vortex
 
 import (
 	"context"
-	vortexMw "gothub.com/dzjyyds666/VortexCore/middleware"
-	"gothub.com/dzjyyds666/VortexCore/utils"
 	"io"
 	"net/http"
 	"time"
+
+	vortexMw "github.com/dzjyyds666/VortexCore/middleware"
+	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 
 	"github.com/labstack/echo/v4"
 )

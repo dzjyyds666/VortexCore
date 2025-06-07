@@ -5,10 +5,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"gothub.com/dzjyyds666/VortexCore/utils"
 	"net"
 	"net/http"
 	"net/http/httptest"
+
+	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 
 	"github.com/dzjyyds666/opensource/logx"
 )

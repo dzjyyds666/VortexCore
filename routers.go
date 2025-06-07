@@ -1,12 +1,13 @@
 package vortex
 
 import (
-	"github.com/shirou/gopsutil/v4/disk"
-	"github.com/shirou/gopsutil/v4/mem"
-	vortexMw "gothub.com/dzjyyds666/VortexCore/middleware"
-	vortexUtil "gothub.com/dzjyyds666/VortexCore/utils"
 	"net/http"
 	"runtime"
+
+	vortexMw "github.com/dzjyyds666/VortexCore/middleware"
+	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
+	"github.com/shirou/gopsutil/v4/disk"
+	"github.com/shirou/gopsutil/v4/mem"
 )
 
 func prepareDefaultHttpRouter() []*HttpRouter {
