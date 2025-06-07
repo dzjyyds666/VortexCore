@@ -75,7 +75,7 @@ func PrintResponseInfoMw() VortexHttpMiddleware {
 				vortexUtil.Errorf("\" %s  %s UserAgent=%s \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexUtil.VortexHeaders.UserAgent.S()))
 			}
 			beginTime := ctx.Get("BeginTime")
-			vortexUtil.Infof("\" END ==> %s ==> %s ==> time=%vms \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, time.Now().UnixMilli()-beginTime.(int64))
+			vortexUtil.Infof("\" END   ==> %s ==> %s ==> time=%vms %v \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, time.Now().UnixMilli()-beginTime.(int64), ctx.Response().Status)
 			return nil
 		}
 	}
