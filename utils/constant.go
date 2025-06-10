@@ -1,4 +1,4 @@
-package vortexUtil
+package vortexu
 
 const (
 	Http1     = "http/1.1"

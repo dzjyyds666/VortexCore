@@ -2,12 +2,8 @@ package vortex
 
 import (
 	"context"
-	"io"
-	"net/http"
-	"time"
 
 	vortexMw "github.com/dzjyyds666/VortexCore/middleware"
-	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 
 	"github.com/labstack/echo/v4"
 )
@@ -82,41 +78,4 @@ func (hr *HttpRouter) ToMiddleWareList() []echo.MiddlewareFunc {
 		middlewares = append(middlewares, echo.MiddlewareFunc(mw))
 	}
 	return middlewares
-}
-
-type HttpOpt func(resp http.Header) http.Header
-
-// HttpJsonResponse 返回json数据
-func HttpJsonResponse(ctx VortexContext, code int, data interface{}, opts ...HttpOpt) error {
-	echoCtx := ctx.GetEcho()
-	// 设置响应的请求头
-	for _, opt := range opts {
-		opt(echoCtx.Response().Header())
-	}
-
-	return echoCtx.JSON(code, VortexHttpResponse{
-		Code: code,
-		Body: data,
-		Info: struct {
-			Url  string `json:"url,omitempty"`  // 响应的url
-			Time int64  `json:"time,omitempty"` // 响应时间
-		}{
-			Url:  echoCtx.Request().URL.String(),
-			Time: time.Now().Unix(),
-		},
-	})
-}
-
-// 流式返回数据
-func HttpStreamResponse(ctx VortexContext, code int, stream io.Reader, opts ...HttpOpt) error {
-	echoCtx := ctx.GetEcho()
-	for _, opt := range opts {
-		opt(echoCtx.Response().Header())
-	}
-	contentType := echoCtx.Response().Header().Get(vortexUtil.VortexHeaders.ContentType.S())
-	if len(contentType) <= 0 {
-		return echoCtx.Stream(code, "application/octet-stream", stream)
-	} else {
-		return echoCtx.Stream(code, contentType, stream)
-	}
 }

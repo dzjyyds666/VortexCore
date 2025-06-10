@@ -1,4 +1,4 @@
-package vortexUtil
+package vortexu
 
 import (
 	"context"
