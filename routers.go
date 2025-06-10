@@ -14,7 +14,7 @@ import (
 func prepareDefaultHttpRouter() []*HttpRouter {
 	return []*HttpRouter{
 		AppendHttpRouter([]string{http.MethodGet}, "/system/info", HandleGetSystemInfo, "获取系统信息", vortexMw.JwtSkipMw()),
-		AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", checkAlive, "检查服务是否正常", vortexMw.JwtSkipMw()),
+		AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", HandleCheckAlive, "检查服务是否正常", vortexMw.JwtSkipMw()),
 	}
 }
 
@@ -79,7 +79,7 @@ func HandleGetSystemInfo(ctx VortexContext) error {
 }
 
 // 检查服务是否正常
-func checkAlive(ctx VortexContext) error {
+func HandleCheckAlive(ctx VortexContext) error {
 	return httpx.HttpJsonResponse(ctx.GetEcho(), http.StatusOK, vortexUtil.Map{
 		"msg": "service success",
 	})

@@ -1,26 +1,25 @@
 package httpx
 
 var HttpStatus = struct {
-	StatusOk                  int
-	StatusBadRequest          int
-	StatusInternalServerError int
-	StatusNotFound            int
-	StatusUnauthorized        int
-	StatusForbidden           int
-	StatusMethodNotAllowed    int
-	StatusServiceUnavailable  int
-	StatusGatewayTimeout      int
-	StatusTooManyRequests     int
+	Ok                  int
+	BadRequest          int
+	InternalServerError int
+	NotFound            int
+	Unauthorized        int
+	Forbidden           int
+	MethodNotAllowed    int
+	ServiceUnavailable  int
+	GatewayTimeout      int
+	TooManyRequests     int
 }{
-	StatusOk:                  200,
-	StatusBadRequest:          400,
-	StatusUnauthorized:        401,
-	StatusForbidden:           403,
-	StatusNotFound:            404,
-	StatusMethodNotAllowed:    405,
-	StatusTooManyRequests:     429, // 请求过多
-	StatusInternalServerError: 500,
-	StatusServiceUnavailable:  503, // 服务不可用
-	StatusGatewayTimeout:      504, // 网关超时
-
+	Ok:                  200,
+	BadRequest:          400,
+	Unauthorized:        401,
+	Forbidden:           403,
+	NotFound:            404,
+	MethodNotAllowed:    405,
+	TooManyRequests:     429, // 请求过多
+	InternalServerError: 500,
+	ServiceUnavailable:  503, // 服务不可用
+	GatewayTimeout:      504, // 网关超时
 }
