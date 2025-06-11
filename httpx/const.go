@@ -11,9 +11,11 @@ var HttpStatus = struct {
 	ServiceUnavailable  int
 	GatewayTimeout      int
 	TooManyRequests     int
+	ParamError          int
 }{
 	Ok:                  200,
 	BadRequest:          400,
+	ParamError:          400,
 	Unauthorized:        401,
 	Forbidden:           403,
 	NotFound:            404,
