@@ -14,11 +14,11 @@
 
 ### 一、支持协议
 
-- Http
-- WebSocket
-- MQTT（暂定）
-- grpc（暂定）
-- .........
+- [x] Http
+- [ ] WebSocket
+- [ ] MQTT
+- [ ] grpc
+- [ ] .........
 
 ### 二、快速开始
 

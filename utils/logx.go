@@ -9,6 +9,12 @@ import (
 
 var vlog *logx.Logger
 
+// 初始化日志
+// 参数解析：
+// logPath 日志文件路径
+// logLevel 日志级别，级别低于该等级不会打印
+// maxSizeMB 日志文件的最大大小，超过该值会自动生成一个新的日志文件
+// consoleOut 是否输出到控制台
 func InitVortexLog(logPath string, logLevel logx.LogLevel, maxSizeMB int64, consoleOut bool) error {
 	logger, err := logx.NewLogger(logPath, logLevel, maxSizeMB, consoleOut)
 	if nil != err {
