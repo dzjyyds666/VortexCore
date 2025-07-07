@@ -2,8 +2,7 @@ package vortex
 
 import (
 	"context"
-
-	vortexMw "github.com/dzjyyds666/VortexCore/middleware"
+	"github.com/dzjyyds666/VortexCore/internal/middleware"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,7 +24,7 @@ type httpServer struct {
 	e   *echo.Echo // Echo 框架实例
 }
 
-func NewHttpServer(ctx context.Context, routers []*HttpRouter) *httpServer {
+func newHttpServer(ctx context.Context, routers []*httpRouter) *httpServer {
 	e := echo.New()
 
 	vortex := e.Group("/v1")
@@ -45,7 +44,7 @@ func NewHttpServer(ctx context.Context, routers []*HttpRouter) *httpServer {
 	}
 }
 
-type HttpRouter struct {
+type httpRouter struct {
 	handle      func(VortexContext) error       // 路由处理函数
 	path        string                          // 路由路径
 	method      []string                        // HTTP方法
@@ -54,14 +53,14 @@ type HttpRouter struct {
 }
 
 // 添加 Http 路由
-func AppendHttpRouter(method []string, path string, handle func(VortexContext) error, apiDescription string, middleWares ...vortexMw.VortexHttpMiddleware) *HttpRouter {
+func AppendHttpRouter(method []string, path string, handle func(VortexContext) error, apiDescription string, middleWares ...vortexMw.VortexHttpMiddleware) *httpRouter {
 	// 中间件顺序调用 parseJwt -> 自定义中间件 -> verifyJwt
 	mws := make([]vortexMw.VortexHttpMiddleware, 0)
 	mws = append(mws, vortexMw.PrintRequestInfoMw(), vortexMw.PrintResponseInfoMw(), vortexMw.JwtParseMw())
 	mws = append(mws, middleWares...)
 	mws = append(mws, vortexMw.JwtVerifyMw())
 
-	return &HttpRouter{
+	return &httpRouter{
 		handle:      handle,
 		path:        path,
 		method:      method,
@@ -72,7 +71,7 @@ func AppendHttpRouter(method []string, path string, handle func(VortexContext) e
 
 // 将 VortexHttpMiddleware 转换为 Echo 中间件列表
 // 这将允许 Echo 框架使用这些中间件
-func (hr *HttpRouter) ToMiddleWareList() []echo.MiddlewareFunc {
+func (hr *httpRouter) ToMiddleWareList() []echo.MiddlewareFunc {
 	middlewares := make([]echo.MiddlewareFunc, 0, len(hr.middleWares))
 	for _, mw := range hr.middleWares {
 		middlewares = append(middlewares, echo.MiddlewareFunc(mw))

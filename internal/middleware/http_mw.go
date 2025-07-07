@@ -2,9 +2,9 @@ package vortexMw
 
 import (
 	"errors"
+	"github.com/dzjyyds666/VortexCore/internal/utils"
 	"time"
 
-	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 	"github.com/dzjyyds666/opensource/sdk"
 	"github.com/labstack/echo/v4"
 )
@@ -21,7 +21,7 @@ type VortexHttpMiddleware echo.MiddlewareFunc // Vortex HTTP 中间件类型
 func JwtParseMw() VortexHttpMiddleware {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			token := ctx.Request().Header.Get(vortexUtil.VortexHeaders.Authorization.S())
+			token := ctx.Request().Header.Get(vortexu.VortexHeaders.Authorization.S())
 			jwtToken, err := sdk.ParseJwtToken("", token)
 			if nil != err {
 				ctx.Set(JwtVerifySuccess, false)
@@ -60,7 +60,7 @@ func JwtVerifyMw() VortexHttpMiddleware {
 func PrintRequestInfoMw() VortexHttpMiddleware {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			vortexUtil.Infof("\" START ==> %s ==> %s ==> UserAgent=%s\"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexUtil.VortexHeaders.UserAgent.S()))
+			vortexu.Infof("\" START ==> %s ==> %s ==> UserAgent=%s\"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexu.VortexHeaders.UserAgent.S()))
 			ctx.Set("BeginTime", time.Now().UnixMilli())
 			return next(ctx)
 		}
@@ -72,10 +72,10 @@ func PrintResponseInfoMw() VortexHttpMiddleware {
 		return func(ctx echo.Context) error {
 			err := next(ctx)
 			if err != nil {
-				vortexUtil.Errorf("\" %s  %s UserAgent=%s \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexUtil.VortexHeaders.UserAgent.S()))
+				vortexu.Errorf("\" %s  %s UserAgent=%s \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexu.VortexHeaders.UserAgent.S()))
 			}
 			beginTime := ctx.Get("BeginTime")
-			vortexUtil.Infof("\" END   ==> %s ==> %s ==> time=%vms %v \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, time.Now().UnixMilli()-beginTime.(int64), ctx.Response().Status)
+			vortexu.Infof("\" END   ==> %s ==> %s ==> time=%vms %v \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, time.Now().UnixMilli()-beginTime.(int64), ctx.Response().Status)
 			return nil
 		}
 	}

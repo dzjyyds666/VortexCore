@@ -4,12 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	vortexUtil "github.com/dzjyyds666/VortexCore/internal/utils"
 	"io"
 	"net"
 	"net/http"
 	"time"
-
-	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 )
 
 // 根据请求的前几个字节做协议识别，并并发连接
