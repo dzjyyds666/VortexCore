@@ -6,7 +6,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/dzjyyds666/VortexCore/internal/utils"
+	"github.com/dzjyyds666/VortexCore/internal/httpx"
+	"github.com/dzjyyds666/VortexCore/utils"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -24,14 +25,14 @@ var Transport = struct {
 
 // 框架的整体结构
 type Vortex struct {
-	ctx        context.Context    // 上下文
-	cancel     context.CancelFunc // 退出信号
-	port       string             // 服务的端口
-	transport  string             // 传输协议
-	protocol   []string           // 支持的协议列表
-	httpServ   *httpServer        // http服务，封装了echo框架
-	httpRouter []*httpRouter      // http服务路由表
-	hideBanner bool               // 是否隐藏启动旗帜，默认为false，显示banner
+	ctx        context.Context     // 上下文
+	cancel     context.CancelFunc  // 退出信号
+	port       string              // 服务的端口
+	transport  string              // 传输协议
+	protocol   []string            // 支持的协议列表
+	httpServ   *httpx.httpServer   // http服务，封装了echo框架
+	httpRouter []*httpx.httpRouter // http服务路由表
+	hideBanner bool                // 是否隐藏启动旗帜，默认为false，显示banner
 }
 
 // 启动服务
@@ -53,7 +54,7 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 		case vortexu.Http1:
 			router := prepareDefaultHttpRouter()
 			vortex.httpRouter = append(vortex.httpRouter, router...)
-			vortex.httpServ = newHttpServer(ctx, vortex.httpRouter)
+			vortex.httpServ = httpx.newHttpServer(ctx, vortex.httpRouter)
 		}
 	}
 
@@ -156,7 +157,7 @@ type Option func(*Vortex)
 // 设置自定义日志
 func WithCustomLogger(logPath string, logLevel logx.LogLevel, maxSizeMB int64, consoleOut bool) Option {
 	return func(v *Vortex) {
-		if err := vortexu.InitVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
+		if err := vortexu.vortexu.InitVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
 			panic(fmt.Sprintf("init vortex log error: %v", err))
 		}
 	}
@@ -203,10 +204,10 @@ func WithProtocol(protocols ...string) Option {
 }
 
 // 设置自定义Http路由
-func WithHttpRouter(routers []*httpRouter) Option {
+func WithHttpRouter(routers []*httpx.httpRouter) Option {
 	return func(v *Vortex) {
 		if v.httpRouter == nil {
-			v.httpRouter = make([]*httpRouter, 0)
+			v.httpRouter = make([]*httpx.httpRouter, 0)
 		}
 		v.httpRouter = append(v.httpRouter, routers...)
 	}

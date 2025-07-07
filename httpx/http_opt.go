@@ -3,7 +3,7 @@ package httpx
 import (
 	"context"
 	"fmt"
-	vortexu "github.com/dzjyyds666/VortexCore/internal/utils"
+	vortexu2 "github.com/dzjyyds666/VortexCore/utils"
 	"io"
 	"net/http"
 	"strings"
@@ -57,7 +57,7 @@ type HttpOpt func(resp http.Header) http.Header
 
 func WithContentType(contentType string) HttpOpt {
 	return func(resp http.Header) http.Header {
-		resp.Set(vortexu.VortexHeaders.ContentType.S(), contentType)
+		resp.Set(vortexu2.VortexHeaders.ContentType.S(), contentType)
 		return resp
 	}
 }
@@ -72,7 +72,7 @@ func HttpJsonResponse(ctx echo.Context, vertexCode VortexCode, data interface{},
 	// 从请求体重获取到国际化信息
 	lang := ctx.Request().Header.Get(HttpHeaderEnums.AcceptLanguage)
 	lower := strings.ToLower(fmt.Sprintf("%s.%s", vertexCode.I18nKey, lang))
-	n := vortexu.GetI18n(lower)
+	n := vortexu2.GetI18n(lower)
 
 	var subcode int
 	if vertexCode.subCode == 0 {
@@ -100,16 +100,16 @@ func HttpStreamResponse(ctx echo.Context, code int, stream io.Reader, opts ...Ht
 	for _, opt := range opts {
 		opt(ctx.Response().Header())
 	}
-	contentType := ctx.Response().Header().Get(vortexu.VortexHeaders.ContentType.S())
+	contentType := ctx.Response().Header().Get(vortexu2.VortexHeaders.ContentType.S())
 	if len(contentType) <= 0 {
 		err := ctx.Stream(code, "application/octet-stream", stream)
 		if nil != err {
-			vortexu.Errorf("HttpStreamResponse|HttpStreamError:%v", err)
+			vortexu2.Errorf("HttpStreamResponse|HttpStreamError:%v", err)
 		}
 	} else {
 		err := ctx.Stream(code, contentType, stream)
 		if nil != err {
-			vortexu.Errorf("HttpStreamResponse|HttpStreamError:%v", err)
+			vortexu2.Errorf("HttpStreamResponse|HttpStreamError:%v", err)
 		}
 	}
 	ctx.Response().Flush()
@@ -120,7 +120,7 @@ func HttpStreamResponse(ctx echo.Context, code int, stream io.Reader, opts ...Ht
 func Do(ctx context.Context, hcli *http.Client, method string, reqUrl string, body io.Reader, opts ...HttpOpt) (*http.Response, error) {
 	req, err := http.NewRequest(method, reqUrl, body)
 	if nil != err {
-		vortexu.Errorf("HttpDO|HttpRequestError:%v", err)
+		vortexu2.Errorf("HttpDO|HttpRequestError:%v", err)
 		return nil, err
 	}
 
@@ -130,7 +130,7 @@ func Do(ctx context.Context, hcli *http.Client, method string, reqUrl string, bo
 
 	resp, err := hcli.Do(req)
 	if nil != err {
-		vortexu.Errorf("HttpDO|HttpResponseError:%v", err)
+		vortexu2.Errorf("HttpDO|HttpResponseError:%v", err)
 		return nil, err
 	}
 	return resp, nil

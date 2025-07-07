@@ -2,7 +2,7 @@ package vortexMw
 
 import (
 	"errors"
-	"github.com/dzjyyds666/VortexCore/internal/utils"
+	"github.com/dzjyyds666/VortexCore/utils"
 	"time"
 
 	"github.com/dzjyyds666/opensource/sdk"

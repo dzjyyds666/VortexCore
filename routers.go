@@ -1,9 +1,9 @@
 package vortex
 
 import (
-	"github.com/dzjyyds666/VortexCore/internal/httpx"
-	"github.com/dzjyyds666/VortexCore/internal/middleware"
-	"github.com/dzjyyds666/VortexCore/internal/utils"
+	"github.com/dzjyyds666/VortexCore/httpx"
+	"github.com/dzjyyds666/VortexCore/middleware"
+	"github.com/dzjyyds666/VortexCore/utils"
 	"net/http"
 	"runtime"
 

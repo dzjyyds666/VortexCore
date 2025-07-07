@@ -2,7 +2,7 @@ package vortex
 
 import (
 	"context"
-	"github.com/dzjyyds666/VortexCore/internal/middleware"
+	"github.com/dzjyyds666/VortexCore/middleware"
 
 	"github.com/labstack/echo/v4"
 )

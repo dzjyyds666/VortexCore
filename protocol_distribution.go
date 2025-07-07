@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	vortexUtil "github.com/dzjyyds666/VortexCore/internal/utils"
+	vortexUtil "github.com/dzjyyds666/VortexCore/utils"
 	"io"
 	"net"
 	"net/http"
