@@ -9,6 +9,11 @@ import (
 
 var vlog *logx.Logger
 
+// 判断当前日志是不是为空
+func IsVortexLogEmpty() bool {
+	return vlog == nil
+}
+
 // 初始化日志
 // 参数解析：
 // logPath 日志文件路径

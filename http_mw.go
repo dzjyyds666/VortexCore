@@ -1,4 +1,4 @@
-package vortexMw
+package vortex
 
 import (
 	"errors"
@@ -57,7 +57,8 @@ func JwtVerifyMw() VortexHttpMiddleware {
 	}
 }
 
-func PrintRequestInfoMw() VortexHttpMiddleware {
+// 打印请求信息
+func printRequestInfoMw() VortexHttpMiddleware {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			vortexu.Infof("\" START ==> %s ==> %s ==> UserAgent=%s\"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexu.VortexHeaders.UserAgent.S()))
@@ -67,7 +68,8 @@ func PrintRequestInfoMw() VortexHttpMiddleware {
 	}
 }
 
-func PrintResponseInfoMw() VortexHttpMiddleware {
+// 打印响应信息
+func printResponseInfoMw() VortexHttpMiddleware {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			err := next(ctx)

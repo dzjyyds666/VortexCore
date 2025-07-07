@@ -2,8 +2,6 @@ package vortex
 
 import (
 	"context"
-	"github.com/dzjyyds666/VortexCore/middleware"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -45,20 +43,20 @@ func newHttpServer(ctx context.Context, routers []*httpRouter) *httpServer {
 }
 
 type httpRouter struct {
-	handle      func(VortexContext) error       // 路由处理函数
-	path        string                          // 路由路径
-	method      []string                        // HTTP方法
-	middleWares []vortexMw.VortexHttpMiddleware // 中间件
-	description string                          // 路由的描述
+	handle      func(VortexContext) error // 路由处理函数
+	path        string                    // 路由路径
+	method      []string                  // HTTP方法
+	middleWares []VortexHttpMiddleware    // 中间件
+	description string                    // 路由的描述
 }
 
 // 添加 Http 路由
-func AppendHttpRouter(method []string, path string, handle func(VortexContext) error, apiDescription string, middleWares ...vortexMw.VortexHttpMiddleware) *httpRouter {
+func AppendHttpRouter(method []string, path string, handle func(VortexContext) error, apiDescription string, middleWares ...VortexHttpMiddleware) *httpRouter {
 	// 中间件顺序调用 parseJwt -> 自定义中间件 -> verifyJwt
-	mws := make([]vortexMw.VortexHttpMiddleware, 0)
-	mws = append(mws, vortexMw.PrintRequestInfoMw(), vortexMw.PrintResponseInfoMw(), vortexMw.JwtParseMw())
+	mws := make([]VortexHttpMiddleware, 0)
+	mws = append(mws, printRequestInfoMw(), printResponseInfoMw(), JwtParseMw())
 	mws = append(mws, middleWares...)
-	mws = append(mws, vortexMw.JwtVerifyMw())
+	mws = append(mws, JwtVerifyMw())
 
 	return &httpRouter{
 		handle:      handle,

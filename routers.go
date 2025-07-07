@@ -2,7 +2,6 @@ package vortex
 
 import (
 	"github.com/dzjyyds666/VortexCore/httpx"
-	"github.com/dzjyyds666/VortexCore/middleware"
 	"github.com/dzjyyds666/VortexCore/utils"
 	"net/http"
 	"runtime"
@@ -13,8 +12,8 @@ import (
 
 func prepareDefaultHttpRouter() []*httpRouter {
 	return []*httpRouter{
-		AppendHttpRouter([]string{http.MethodGet}, "/system/info", HandleGetSystemInfo, "获取系统信息", vortexMw.JwtSkipMw()),
-		AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", HandleCheckAlive, "检查服务是否正常", vortexMw.JwtSkipMw()),
+		AppendHttpRouter([]string{http.MethodGet}, "/system/info", HandleGetSystemInfo, "获取系统信息", JwtSkipMw()),
+		AppendHttpRouter([]string{http.MethodGet}, "/checkAlive", HandleCheckAlive, "检查服务是否正常", JwtSkipMw()),
 	}
 }
 
