@@ -21,7 +21,7 @@ type VortexHttpMiddleware echo.MiddlewareFunc // Vortex HTTP 中间件类型
 func JwtParseMw() VortexHttpMiddleware {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			token := ctx.Request().Header.Get(vortexu.VortexHeaders.Authorization.S())
+			token := ctx.Request().Header.Get(vUtil.VortexHeaders.Authorization.S())
 			jwtToken, err := sdk.ParseJwtToken("", token)
 			if nil != err {
 				ctx.Set(JwtVerifySuccess, false)
@@ -61,7 +61,7 @@ func JwtVerifyMw() VortexHttpMiddleware {
 func printRequestInfoMw() VortexHttpMiddleware {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
-			vortexu.Infof("\" START ==> %s ==> %s ==> UserAgent=%s\"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexu.VortexHeaders.UserAgent.S()))
+			vUtil.Infof("\" START ==> %s ==> %s ==> UserAgent=%s\"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vUtil.VortexHeaders.UserAgent.S()))
 			ctx.Set("BeginTime", time.Now().UnixMilli())
 			return next(ctx)
 		}
@@ -74,10 +74,10 @@ func printResponseInfoMw() VortexHttpMiddleware {
 		return func(ctx echo.Context) error {
 			err := next(ctx)
 			if err != nil {
-				vortexu.Errorf("\" %s  %s UserAgent=%s \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vortexu.VortexHeaders.UserAgent.S()))
+				vUtil.Errorf("\" %s  %s UserAgent=%s \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, ctx.Request().Header.Get(vUtil.VortexHeaders.UserAgent.S()))
 			}
 			beginTime := ctx.Get("BeginTime")
-			vortexu.Infof("\" END   ==> %s ==> %s ==> time=%vms %v \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, time.Now().UnixMilli()-beginTime.(int64), ctx.Response().Status)
+			vUtil.Infof("\" END   ==> %s ==> %s ==> time=%vms %v \"", ctx.Request().Method, ctx.Request().Host+ctx.Request().URL.Path, time.Now().UnixMilli()-beginTime.(int64), ctx.Response().Status)
 			return nil
 		}
 	}

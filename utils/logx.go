@@ -1,4 +1,4 @@
-package vortexu
+package vUtil
 
 import (
 	"fmt"

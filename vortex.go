@@ -44,7 +44,7 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 		o(vortex)
 	}
 
-	if vortexu.IsVortexLogEmpty() {
+	if vUtil.IsVortexLogEmpty() {
 		WithDefaultLogger()(vortex)
 	}
 
@@ -54,7 +54,7 @@ func NewVortexCore(ctx context.Context, opts ...Option) *Vortex {
 
 	for _, p := range vortex.protocol {
 		switch p {
-		case vortexu.Http1:
+		case vUtil.Http1:
 			router := prepareDefaultHttpRouter()
 			vortex.httpRouter = append(vortex.httpRouter, router...)
 			vortex.httpServ = newHttpServer(ctx, vortex.httpRouter)
@@ -73,7 +73,7 @@ func (v *Vortex) Start() {
 	defer ln.Close()
 
 	if !v.hideBanner {
-		vortexu.ShowBanner(v.port)
+		vUtil.ShowBanner(v.port)
 	}
 
 	for {
@@ -108,15 +108,15 @@ func (v *Vortex) ParsingRequest(conn net.Conn) {
 	}
 
 	switch protocl {
-	case vortexu.Http1:
+	case vUtil.Http1:
 		// 使用echo框架处理 HTTP/1.1 请求
 		err := v.handleHttpWithEcho(d)
 		if nil != err {
 			d.Response([]byte("500 Internal Server Error"))
 		}
-	case vortexu.WebSocket:
+	case vUtil.WebSocket:
 		// 使用 WebSocket 处理逻辑
-	case vortexu.Http2:
+	case vUtil.Http2:
 		// 使用 HTTP/2 处理逻辑
 	default:
 	}
@@ -160,7 +160,7 @@ type Option func(*Vortex)
 // 设置自定义日志
 func WithCustomLogger(logPath string, logLevel logx.LogLevel, maxSizeMB int64, consoleOut bool) Option {
 	return func(v *Vortex) {
-		if err := vortexu.InitVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
+		if err := vUtil.InitVortexLog(logPath, logLevel, maxSizeMB, consoleOut); nil != err {
 			panic(fmt.Sprintf("init vortex log error: %v", err))
 		}
 	}
@@ -169,7 +169,7 @@ func WithCustomLogger(logPath string, logLevel logx.LogLevel, maxSizeMB int64, c
 // 设置默认日志
 func WithDefaultLogger() Option {
 	return func(v *Vortex) {
-		if err := vortexu.InitVortexLog("logs/stdout.log", logx.DEBUG, 10, true); nil != err {
+		if err := vUtil.InitVortexLog("logs/stdout.log", logx.DEBUG, 10, true); nil != err {
 			panic(fmt.Sprintf("init vortex log error: %v", err))
 		}
 	}
@@ -223,5 +223,5 @@ func WithI18n(i18nStr string) {
 	if nil != err {
 		panic(err)
 	}
-	vortexu.InitI18n(tmp)
+	initI18n(tmp)
 }

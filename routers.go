@@ -1,7 +1,6 @@
 package vortex
 
 import (
-	"github.com/dzjyyds666/VortexCore/httpx"
 	"github.com/dzjyyds666/VortexCore/utils"
 	"net/http"
 	"runtime"
@@ -31,8 +30,8 @@ func HandleGetSystemInfo(ctx VortexContext) error {
 	// 查询系统的最大内存和当前使用的内存
 	memory, err := mem.VirtualMemory()
 	if nil != err {
-		vortexu.Errorf("Vortex|HandleGetSystemInfo|GetMemoryInfo|Error|%v", err)
-		return httpx.HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
+		vUtil.Errorf("Vortex|HandleGetSystemInfo|GetMemoryInfo|Error|%v", err)
+		return HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
 			"message": "HandleGetSystemInfo Error",
 		})
 	}
@@ -42,16 +41,16 @@ func HandleGetSystemInfo(ctx VortexContext) error {
 	if runtime.GOOS == "windows" {
 		partitions, err := disk.Partitions(false)
 		if err != nil {
-			vortexu.Errorf("Vortex|HandleGetSystemInfo|GetDiskInfo|Error|%v", err)
-			return httpx.HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
+			vUtil.Errorf("Vortex|HandleGetSystemInfo|GetDiskInfo|Error|%v", err)
+			return HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
 				"message": "HandleGetSystemInfo Error",
 			})
 		}
 		for _, partition := range partitions {
 			usage, err := disk.Usage(partition.Mountpoint)
 			if err != nil {
-				vortexu.Errorf("Vortex|HandleGetSystemInfo|GetDiskInfo|Error|%v", err)
-				return httpx.HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
+				vUtil.Errorf("Vortex|HandleGetSystemInfo|GetDiskInfo|Error|%v", err)
+				return HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
 					"message": "HandleGetSystemInfo Error",
 				})
 			}
@@ -61,25 +60,25 @@ func HandleGetSystemInfo(ctx VortexContext) error {
 	} else {
 		diskUsage, err := disk.Usage("/")
 		if nil != err {
-			vortexu.Errorf("Vortex|HandleGetSystemInfo|GetDiskInfo|Error|%v", err)
-			return httpx.HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
+			vUtil.Errorf("Vortex|HandleGetSystemInfo|GetDiskInfo|Error|%v", err)
+			return HttpJsonResponse(echoCtx, http.StatusInternalServerError, map[string]interface{}{
 				"message": "HandleGetSystemInfo Error",
 			})
 		}
 		diskTotal = diskUsage.Total
 		diskUsed = diskUsage.Used
 	}
-	return httpx.HttpJsonResponse(echoCtx, http.StatusOK, systemInfo{
-		TotalMemory: memory.Total / vortexu.GB,
-		UsedMemory:  memory.Used / vortexu.GB,
-		TotalDisk:   diskTotal / vortexu.GB,
-		UsedDisk:    diskUsed / vortexu.GB,
+	return HttpJsonResponse(echoCtx, http.StatusOK, systemInfo{
+		TotalMemory: memory.Total / vUtil.GB,
+		UsedMemory:  memory.Used / vUtil.GB,
+		TotalDisk:   diskTotal / vUtil.GB,
+		UsedDisk:    diskUsed / vUtil.GB,
 	})
 }
 
 // 检查服务是否正常
 func HandleCheckAlive(ctx VortexContext) error {
-	return httpx.HttpJsonResponse(ctx.GetEcho(), http.StatusOK, vortexu.Map{
+	return HttpJsonResponse(ctx.GetEcho(), http.StatusOK, vUtil.Map{
 		"msg": "service success",
 	})
 }
